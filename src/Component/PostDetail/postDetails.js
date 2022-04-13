@@ -1,14 +1,16 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { SERVER } from "../../Constant/constants";
 import Swal from "sweetalert2";
 import Comments from "../../Container/Comments/comments";
 import TextField from "@mui/material/TextField";
+import { SelectedPostContext } from "../../store/Selected";
 
 const PostDetail = (props) => {
   const [detail, setDetail] = useState([]);
   const [comment, setComment] = useState();
   const [flagComment, setFlagComment] = useState(false);
+  const postId = useContext(SelectedPostContext);
 
   const fetchPostDetail = (id) => {
     axios
@@ -17,11 +19,7 @@ const PostDetail = (props) => {
         setDetail(response.data);
       })
       .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message,
-        });
+        console.log(error.message);
       });
   };
 
@@ -95,8 +93,8 @@ const PostDetail = (props) => {
   };
 
   useEffect(() => {
-    fetchPostDetail(props.id);
-  }, [props.id, flagComment]);
+    fetchPostDetail(postId);
+  }, [postId, flagComment]);
 
   return (
     <div className="card">
@@ -106,7 +104,7 @@ const PostDetail = (props) => {
           Author : {detail.author}
         </h6>
         <p className="card-text">{detail.content}</p>
-        <Comments id={props.id} flagComment={flagComment} />
+        <Comments id={detail.id} flagComment={flagComment} />
         <div>
           <TextField
             id="comment"
@@ -114,14 +112,14 @@ const PostDetail = (props) => {
             variant="standard"
             className="m-2"
             fullWidth
-            onKeyUp={(e) => onCommentHandler(e, props.id)}
+            onKeyUp={(e) => onCommentHandler(e, detail.id)}
             onKeyDown={(e) => setComment(e.target.value)}
           />
         </div>
         <button className="btn btn-success">Edit</button>
         <button
           className="btn btn-danger m-2"
-          onClick={() => onDeleteHandler(props.id)}
+          onClick={() => onDeleteHandler(detail.id)}
         >
           Delete
         </button>

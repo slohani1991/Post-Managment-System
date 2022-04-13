@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -14,9 +14,8 @@ import Swal from "sweetalert2";
 const Modal = (props) => {
   const [open, setOpen] = useState(false);
 
-  const [title, setTitle] = useState();
-  const [content, setContent] = useState();
-  const [author, setAuthor] = useState();
+  const postFormRef = useRef();
+
   const [loading, setLoading] = useState(false);
 
   const handleClickOpen = () => {
@@ -28,9 +27,9 @@ const Modal = (props) => {
 
   const onSave = () => {
     const post = {
-      title: title,
-      content: content,
-      author: author,
+      title: postFormRef.current["title"].value,
+      content: postFormRef.current["content"].value,
+      author: postFormRef.current["author"].value,
     };
     setLoading(true);
     axios
@@ -70,38 +69,37 @@ const Modal = (props) => {
             To save the new Post, please enter post title , full content and
             author name. Click on Save button to save the data.
           </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="title"
-            label="Post Title"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Post Content"
-            type="text"
-            fullWidth
-            multiline
-            variant="standard"
-            onChange={(e) => setContent(e.target.value)}
-          />
+          <form ref={postFormRef}>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="title"
+              label="Post Title"
+              type="text"
+              fullWidth
+              variant="standard"
+            />
+            <TextField
+              autoFocus
+              margin="dense"
+              id="content"
+              label="Post Content"
+              type="text"
+              fullWidth
+              multiline
+              variant="standard"
+            />
 
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Post Author Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={(e) => setAuthor(e.target.value)}
-          />
+            <TextField
+              autoFocus
+              margin="dense"
+              id="author"
+              label="Post Author Name"
+              type="text"
+              fullWidth
+              variant="standard"
+            />
+          </form>
         </DialogContent>
         {loading === true ? "Saving Data....." : ""}
         <DialogActions>

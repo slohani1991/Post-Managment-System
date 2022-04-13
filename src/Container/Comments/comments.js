@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Comment from "../../Component/Comment/comment";
 import Swal from "sweetalert2";
 import { SERVER } from "../../Constant/constants";
@@ -55,18 +55,18 @@ const Comments = (props) => {
         }
       });
   };
-  const fetchComment = (postId) => {
+  const fetchComment = useCallback(() => {
     axios
-      .get("http://localhost:8080/comments/post/" + postId)
+      .get("http://localhost:8080/comments/post/" + props.id)
       .then((response) => {
         setCommentData(response.data);
       })
       .catch((error) => console.log(error.message));
-  };
+  }, [props.id]);
 
   useEffect(() => {
-    fetchComment(props.id);
-  }, [props.id, props.flagComment, flagComment]);
+    fetchComment();
+  }, [fetchComment, props.flagComment, flagComment]);
 
   const returnData = commentData.map((data, index) => {
     return (
