@@ -1,50 +1,62 @@
 import axios from "axios";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { SERVER } from "../../Constant/constants";
 import Swal from "sweetalert2";
 import Comments from "../../Container/Comments/comments";
 import TextField from "@mui/material/TextField";
-import { SelectedPostContext } from "../../store/Selected";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
-const PostDetail = (props) => {
-  const [detail, setDetail] = useState([]);
-  const [comment, setComment] = useState();
+
+
+const PostDetail = () => {
+
+  const [detail, setDetail] = useState({});
   const [flagComment, setFlagComment] = useState(false);
-  const postId = useContext(SelectedPostContext);
+  const params = useParams();
+  const postId = params.postId;
+  const navigate = useNavigate();
 
-  const fetchPostDetail = (id) => {
-    axios
-      .get(SERVER + "posts/detail/" + id)
-      .then((response) => {
-        setDetail(response.data);
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
-  };
+  const headers = {
+    'Authorization': `Bearer ${Cookies.get("accessToken")}`,
+    'Content-Type': "application/json"
+  }
 
-  const onCommentHandler = (e, id) => {
+  const onCommentHandler = async (e) => {
+    e.preventDefault();
     if (e.keyCode === 13) {
-      const commentData = {
-        name: comment,
-      };
-      axios
-        .post(SERVER + "comments/post/" + id, commentData)
-        .then((response) => {
+      if (e.target.value === "") {
+
+        Swal.fire({
+          icon: "error",
+          title: "Oops...Comment field empty",
+          text: "Comment field must not be empty!!!Comment required!!",
+        });
+
+      } else {
+        const commentData = {
+          name: e.target.value,
+        };
+        try {
+          await axios
+            .post(SERVER + "comments/post/" + postId, commentData, headers);
           setFlagComment(!flagComment);
           Swal.fire("Commented", "Your comment has been posted.", "success");
-        })
-        .catch((error) => {
+          e.target.value = "";
+        }
+        catch (error) {
           Swal.fire({
             icon: "error",
-            title: "Oops...",
+            title: "Oops...Problem Saving Comment!!!",
             text: error.message,
           });
-        });
+        }
+      }
     }
   };
 
-  const onDeleteHandler = (id) => {
+  const onDeleteHandler = async () => {
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
         confirmButton: "btn btn-success",
@@ -65,23 +77,24 @@ const PostDetail = (props) => {
       })
       .then((result) => {
         if (result.isConfirmed) {
-          axios
-            .delete(SERVER + "posts/" + id)
-            .then((response) => {
-              props.updateFlagHandler();
+          try {
+            const response = axios.delete(SERVER + "posts/" + postId);
+            if (response) {
               swalWithBootstrapButtons.fire(
                 "Deleted!",
                 "Your Post has been deleted.",
                 "success"
               );
-            })
-            .catch((error) => {
-              Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: error.message,
-              });
+              navigate("/postRedirect")
+            }
+          }
+          catch (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: error.message,
             });
+          }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithBootstrapButtons.fire(
             "Cancelled",
@@ -92,40 +105,56 @@ const PostDetail = (props) => {
       });
   };
 
-  useEffect(() => {
-    fetchPostDetail(postId);
-  }, [postId, flagComment]);
+  const fetchPostDetail = async () => {
+    try {
+      const response = await axios
+        .get(SERVER + "posts/" + postId);
+      setDetail(response.data);
+    }
+    catch (error) {
+      console.log(error.message);
+    };
+  }
 
-  return (
-    <div className="card">
-      <div className="card-body">
-        <h5 className="card-title">{detail.title}</h5>
-        <h6 className="card-subtitle mb-2 text-muted">
-          Author : {detail.author}
-        </h6>
-        <p className="card-text">{detail.content}</p>
-        <Comments id={detail.id} flagComment={flagComment} />
-        <div>
-          <TextField
-            id="comment"
-            label="Enter Comment and enter to save"
-            variant="standard"
-            className="m-2"
-            fullWidth
-            onKeyUp={(e) => onCommentHandler(e, detail.id)}
-            onKeyDown={(e) => setComment(e.target.value)}
-          />
+  useEffect(async () => {
+    fetchPostDetail();
+  }, [postId]);
+
+  if (params.postId) {
+    return (
+      <div className="card">
+        <div className="card-body">
+          <h5 className="card-title">{detail.title}</h5>
+          <h6 className="card-subtitle mb-2 text-muted">
+            Author : {detail.author}
+          </h6>
+          <p className="card-text">{detail.content}</p>
+          <Comments id={detail.id} flagComment={flagComment} />
+          <div>
+
+            <TextField
+              id="comment"
+              label="Enter Comment and enter to save"
+              variant="standard"
+              className="m-2"
+              fullWidth
+              onKeyUp={(e) => onCommentHandler(e)}
+            />
+
+          </div>
+          <button className="btn btn-success">Edit</button>
+          <button
+            className="btn btn-danger m-2"
+            onClick={() => onDeleteHandler(detail.id)}
+          >
+            Delete
+          </button>
         </div>
-        <button className="btn btn-success">Edit</button>
-        <button
-          className="btn btn-danger m-2"
-          onClick={() => onDeleteHandler(detail.id)}
-        >
-          Delete
-        </button>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return null;
+  }
 };
 
 export default PostDetail;

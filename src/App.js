@@ -1,11 +1,15 @@
 import "./App.css";
-import Dashboard from "./Container/dashboard";
+
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import Container from "./Container/container";
+
 
 function App() {
   return (
-    <div className="App">
-      <Dashboard />
-    </div>
+    <BrowserRouter>
+      <Container />
+    </BrowserRouter>
   );
 }
 

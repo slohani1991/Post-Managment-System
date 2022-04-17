@@ -1,49 +1,40 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+
 import axios from "axios";
 import { SERVER } from "../../Constant/constants";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
-const Modal = (props) => {
-  const [open, setOpen] = useState(false);
+
+const Modal = () => {
 
   const postFormRef = useRef();
 
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const onSave = () => {
+  const onSave = (e) => {
+    e.preventDefault();
+    setLoading(true);
     const post = {
       title: postFormRef.current["title"].value,
       content: postFormRef.current["content"].value,
       author: postFormRef.current["author"].value,
     };
-    setLoading(true);
+
     axios
       .post(SERVER + "posts/1", post)
       .then((response) => {
         console.log(response);
         Swal.fire("Post Saved", "Your data is successfully saved!", "success");
         setLoading(false);
-        handleClose();
-        props.updateFlagHandler();
+        navigate("/posts");
       })
       .catch((error) => {
         setLoading(false);
-        handleClose();
         Swal.fire({
           icon: "error",
           title: "Oops...",
@@ -52,23 +43,19 @@ const Modal = (props) => {
       });
   };
 
+  useEffect(() => {
+    postFormRef.current["title"].focus();
+  }, [])
+
   return (
     <>
-      <button
-        className="btn btn-success float-right mt-3 mr-3"
-        variant="outlined"
-        onClick={handleClickOpen}
-      >
-        Add New Post[+]
-      </button>
-
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Post</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
+      <div style={{ "margin": 50 }}>
+        <div className="col-lg-6">
+          <h3>Add New Post</h3>
+          <p>
             To save the new Post, please enter post title , full content and
             author name. Click on Save button to save the data.
-          </DialogContentText>
+          </p>
           <form ref={postFormRef}>
             <TextField
               autoFocus
@@ -99,14 +86,19 @@ const Modal = (props) => {
               fullWidth
               variant="standard"
             />
+            {loading === true ?
+              <button class="btn btn-success mt-5" disabled>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Saving...
+              </button>
+              :
+              <button onClick={(e) => onSave(e)} className="btn btn-success mt-5">Save</button>
+            }
+            <button className="btn btn-danger ml-2 mt-5" type="reset">Reset</button>
           </form>
-        </DialogContent>
-        {loading === true ? "Saving Data....." : ""}
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={() => onSave()}>Save</Button>
-        </DialogActions>
-      </Dialog>
+
+        </div>
+      </div>
     </>
   );
 };

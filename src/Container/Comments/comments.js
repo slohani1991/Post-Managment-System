@@ -3,10 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import Comment from "../../Component/Comment/comment";
 import Swal from "sweetalert2";
 import { SERVER } from "../../Constant/constants";
+import { useParams } from "react-router-dom";
 
 const Comments = (props) => {
   const [commentData, setCommentData] = useState([]);
   const [flagComment, setFlagComment] = useState(false);
+  const params = useParams();
+  const postId = params.postId;
 
   const onDeleteHandler = (id) => {
     const swalWithBootstrapButtons = Swal.mixin({
@@ -57,12 +60,12 @@ const Comments = (props) => {
   };
   const fetchComment = useCallback(() => {
     axios
-      .get("http://localhost:8080/comments/post/" + props.id)
+      .get("http://localhost:8080/comments/post/" + postId)
       .then((response) => {
         setCommentData(response.data);
       })
       .catch((error) => console.log(error.message));
-  }, [props.id]);
+  }, [postId]);
 
   useEffect(() => {
     fetchComment();

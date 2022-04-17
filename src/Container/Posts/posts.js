@@ -1,29 +1,52 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Post from "../../Component/Post/post";
+import PostDetail from "../../Component/PostDetail/postDetails";
+import { SERVER } from "../../Constant/constants";
+import Cookies from "js-cookie";
 
-const Posts = (props) => {
+const Posts = () => {
   const [postData, setPostData] = useState([]);
 
-  const fetchPosts = () => {
-    axios
-      .get("http://localhost:8080/posts")
-      .then((response) => setPostData(response.data))
-      .catch((error) => console.log(error.message));
-  };
+  const fetchPosts = async () => {
+
+    const headers = {
+      'Authorization': `Bearer ${Cookies.get("accessToken")}`,
+      'Content-Type': "application/json"
+    }
+
+    const userEmail = Cookies.get("userEmail");
+
+    try {
+      const response = await axios.get(SERVER + "users/posts/byUser/" + userEmail, headers);
+      setPostData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   useEffect(() => {
     fetchPosts();
-  }, [props.updateFlag]);
+  }, []);
 
   const postAsList = postData.map((data) => {
     return (
-      <div className="col-lg-3 mt-4 float-left" key={data.id}>
-        <Post post={data} loadDetail={props.loadDetail} />
-      </div>
+
+      <Link to={`${data.id}`} key={data.id}>
+        <div className="col-lg-3 mt-4 float-left" key={data.id}>
+          <Post post={data} />
+        </div>
+      </Link>
+
     );
   });
-  return postAsList;
+  return (
+    <React.Fragment>
+      {postAsList}
+      <PostDetail></PostDetail>
+    </React.Fragment>
+  );
 };
 
 export default Posts;

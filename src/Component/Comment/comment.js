@@ -2,7 +2,7 @@ import "./comment.css";
 
 const Comment = (props) => {
   return (
-    <div className="d-flex justify-content-center py-2">
+    <div className="d-flex justify-content py-2">
       <div className="second py-2 px-2">
         <span className="text1">{props.data.name}</span>
         <div className="d-flex justify-content-between py-1 pt-2"></div>

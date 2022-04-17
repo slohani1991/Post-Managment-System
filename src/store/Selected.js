@@ -1,3 +1,3 @@
 import { createContext } from "react";
 
-export const SelectedPostContext = createContext([]);
+export const IsLoggedIn = createContext([]);
